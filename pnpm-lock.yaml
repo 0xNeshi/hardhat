@@ -1529,6 +1529,9 @@ importers:
 
   v-next/hardhat:
     dependencies:
+      '@ignored/hardhat-vnext-build-system':
+        specifier: workspace:^3.0.0-next.2
+        version: link:../hardhat-build-system
       '@ignored/hardhat-vnext-core':
         specifier: workspace:^3.0.0-next.2
         version: link:../core
@@ -1618,10 +1621,10 @@ importers:
   v-next/hardhat-build-system:
     dependencies:
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.0
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.0
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-utils
       '@nomicfoundation/ethereumjs-util':
         specifier: 9.0.4
@@ -1679,11 +1682,8 @@ importers:
         specifier: ^4.3.0
         version: 4.3.0(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.0
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
-      '@nomicfoundation/hardhat-test-utils':
-        specifier: workspace:^
-        version: link:../hardhat-test-utils
       '@types/ci-info':
         specifier: ^2.0.0
         version: 2.0.0

@@ -3,3 +3,6 @@
 
 # Compilation output
 /dist
+
+# Hardhat Build Artifacts
+/artifacts

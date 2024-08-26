@@ -5,6 +5,9 @@
       "path": "../core"
     },
     {
+      "path": "../hardhat-build-system"
+    },
+    {
       "path": "../hardhat-errors"
     },
     {
