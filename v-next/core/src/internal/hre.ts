@@ -119,6 +119,15 @@ export class HardhatRuntimeEnvironmentImplementation
       globalOptionDefinitions,
     );
 
+    await hooks.runHandlerChain(
+      "hre",
+      "extend",
+      [hre],
+      async (_context, passedHre) => {
+        return passedHre;
+      },
+    );
+
     await hooks.runSequentialHandlers("hre", "created", [hre]);
 
     return hre;

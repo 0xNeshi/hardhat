@@ -231,6 +231,22 @@ export interface UserInterruptionHooks {
  * Hardhat Runtime Environment-related hooks.
  */
 export interface HardhatRuntimeEnvironmentHooks {
+  /**
+   * Provide a handler for this hook to extend the HardhatRuntimeEnvironment
+   * at initialization time.
+   *
+   * @param context The hook context.
+   * @param hre The initialized Hardhat Runtime Environment to be extended.
+   * @param next A function to call the next handler for this hook.
+   */
+  extend: (
+    context: HookContext,
+    hre: HardhatRuntimeEnvironment,
+    next: (
+      nextContext: HookContext,
+      nextHre: HardhatRuntimeEnvironment,
+    ) => Promise<HardhatRuntimeEnvironment>,
+  ) => Promise<HardhatRuntimeEnvironment>;
   created: (
     context: HookContext,
     hre: HardhatRuntimeEnvironment,
