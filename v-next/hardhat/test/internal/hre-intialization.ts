@@ -191,6 +191,7 @@ describe("HRE intialization", () => {
           version: false,
           fooPluginFlag: false,
           myGlobalOption: "default",
+          network: "",
         });
       });
     });

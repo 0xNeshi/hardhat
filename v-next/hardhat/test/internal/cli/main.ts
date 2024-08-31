@@ -234,6 +234,7 @@ GLOBAL OPTIONS:
   --foo-plugin-flag        A flag
   --help                   Shows this message, or a task's help if its name is provided.
   --init                   Initializes a Hardhat project.
+  --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers).
   --version                Shows hardhat's version.
 
