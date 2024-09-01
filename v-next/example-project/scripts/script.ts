@@ -1,15 +1,10 @@
 import { network } from "@ignored/hardhat-vnext";
 
-const conn = await network.connect("localhost", "optimism");
+// This network connection has access to an optimism-specific viem api
+const optimism = await network.connect("localhost", "optimism");
+optimism.viem.client.getL1BaseFee({ chain: null });
 
-console.log(conn);
-
-console.log(
-  "eth_chainId",
-  await conn.provider.request({ method: "eth_chainId" }),
-);
-
-console.log(
-  "eth_accounts",
-  await conn.provider.request({ method: "eth_accounts" }),
-);
+// This one doesn't
+const mainnet = await network.connect("localhost", "l1");
+// @ts-expect-error
+mainnet.viem.client.getL1BaseFee({ chain: null });

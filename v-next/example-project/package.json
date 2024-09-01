@@ -29,5 +29,8 @@
     "mocha": "^10.0.0",
     "prettier": "3.2.5",
     "typescript": "~5.5.0"
+  },
+  "dependencies": {
+    "viem": "^2.7.6"
   }
 }
