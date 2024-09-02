@@ -1,16 +1,14 @@
-import path from "node:path";
-import { pathToFileURL } from "node:url";
-import { inspect } from "node:util";
-
 import chalk from "chalk";
-import { diff } from "jest-diff";
+import { diff as getDiff } from "jest-diff";
 
 import { indent } from "./formatting.js";
 import {
   cleanupTestFailError,
+  getErrorChain,
   isCancelledByParentError,
   isTestFileExecutionFailureError,
 } from "./node-test-error-utils.js";
+import { StackReference } from "./stack-reference.js";
 
 // TODO: Clean up the node internal fames from the stack trace
 export function formatError(error: Error): string {
@@ -37,44 +35,54 @@ export function formatError(error: Error): string {
 
   error = cleanupTestFailError(error);
 
-  const defaultFormat = inspect(error);
-  const indexOfMessage = defaultFormat.indexOf(error.message);
+  const errorChain = getErrorChain(error);
 
-  let title: string;
-  let stack: string;
-  if (indexOfMessage !== -1) {
-    title = defaultFormat.substring(0, indexOfMessage + error.message.length);
-    stack = defaultFormat
-      .substring(indexOfMessage + error.message.length)
-      .replace(/^(\r?\n)*/, "");
-  } else {
-    title = error.message;
-    stack = error.stack ?? "";
-  }
+  const messages = errorChain
+    .map((message, index) => formatSingleError(message, index !== 0))
+    .map((message, index) => indent(message, index * 2));
 
-  title = improveNodeAssertTitle(title, error);
-  title = chalk.red(title);
-  stack = replaceFileUrlsWithRelativePaths(stack);
-  stack = chalk.gray(stack);
-
-  const diffResult = getErrorDiff(error);
-
-  if (diffResult === undefined) {
-    return `${title}
-${stack}`;
-  }
-
-  return `${title}
-${diffResult}
-
-${stack}`;
+  return messages.join("\n");
 }
 
-// TODO: Do this in a more robust way and that works well with windows
-function replaceFileUrlsWithRelativePaths(stack: string): string {
-  return stack
-    .replaceAll("(" + pathToFileURL(process.cwd() + path.sep).toString(), "(")
-    .replaceAll("(" + process.cwd() + path.sep, "(");
+function formatSingleError(error: Error, isCause: boolean = false): string {
+  const stackLines = (error.stack ?? "").split("\n");
+
+  let message = error.message.split("\n")[0];
+  if (stackLines.length > 0 && stackLines[0].includes(message)) {
+    message = stackLines[0];
+  }
+  message = message.replace(" [ERR_ASSERTION]", "").replace(/:$/, "");
+
+  if (isCause) {
+    message = `[cause]: ${message}`;
+  }
+
+  const diff = getErrorDiff(error);
+
+  const stackReferences: StackReference[] = stackLines
+    .map(StackReference.fromString)
+    .filter((reference) => reference !== null);
+
+  // Remove all the stack references beyond (Suite|Test|TestHook|...).runInAsyncScope
+  // const runInAsyncScopeIndex = stackReferences.findIndex(reference => reference.isTestStart());
+  // if (runInAsyncScopeIndex !== -1) {
+  //   stackReferences = stackReferences.slice(0, runInAsyncScopeIndex);
+  // }
+
+  // Remove all the stack references originating from node
+  // stackReferences = stackReferences.filter(reference => !reference.isNode());
+
+  const stack = stackReferences
+    .map((reference) => reference.toString())
+    .join("\n");
+
+  let formattedError = isCause ? chalk.grey(message) : chalk.red(message);
+  if (diff !== undefined) {
+    formattedError += `\n${diff}\n`;
+  }
+  formattedError += `\n${chalk.gray(indent(stack, 4))}`;
+
+  return formattedError;
 }
 
 function isDiffableError(
@@ -83,23 +91,6 @@ function isDiffableError(
   return (
     "expected" in error && "actual" in error && error.expected !== undefined
   );
-}
-
-function improveNodeAssertTitle(title: string, error: Error): string {
-  if (!isDiffableError(error)) {
-    return title;
-  }
-
-  if (!title.includes("AssertionError [ERR_ASSERTION]: ")) {
-    return title;
-  }
-
-  const match = title.match(/^AssertionError \[ERR_ASSERTION\]\: (.*)\:/);
-  if (match === null) {
-    return title;
-  }
-
-  return `AssertionError: ${match[1]}`;
 }
 
 function getErrorDiff(error: Error): string | undefined {
@@ -111,5 +102,5 @@ function getErrorDiff(error: Error): string | undefined {
     return undefined;
   }
 
-  return diff(error.expected, error.actual) ?? undefined;
+  return getDiff(error.expected, error.actual) ?? undefined;
 }

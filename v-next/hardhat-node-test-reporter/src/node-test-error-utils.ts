@@ -1,3 +1,5 @@
+import { CircularReferenceInErrorChainError } from "./errors.js";
+
 /**
  * Returns true if the error represents that a test/suite failed because one of
  * its subtests failed.
@@ -56,4 +58,29 @@ export function cleanupTestFailError(error: Error): Error {
   }
 
   return error;
+}
+
+/**
+ * Turns an error into an array of errors, starting from the error itself and
+ * following with its causes.
+ */
+export function getErrorChain(error: Error): Error[] {
+  const errorChain = [error];
+  let previousError = error;
+
+  while (previousError.cause instanceof Error) {
+    if (errorChain.includes(previousError.cause)) {
+      const circularErrorChain = errorChain.slice(
+        errorChain.indexOf(previousError.cause),
+      );
+      errorChain.push(
+        new CircularReferenceInErrorChainError(circularErrorChain),
+      );
+      break;
+    }
+    errorChain.push(previousError.cause);
+    previousError = previousError.cause;
+  }
+
+  return errorChain;
 }
